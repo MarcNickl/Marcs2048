@@ -1,0 +1,27 @@
+name: Game2048
+options:
+  minimumXcodeGenVersion: 2.36.0
+packages: {}
+targets:
+  Game2048:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: Sources
+    resources:
+      - path: Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.marcnickl.game2048
+        SWIFT_VERSION: 5.9
+        DEVELOPMENT_TEAM: 3KSWGRJK37
+        CODE_SIGN_STYLE: Automatic
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: Game2048
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIApplicationSupportsIndirectInputEvents: true
+
