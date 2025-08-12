@@ -187,9 +187,10 @@ export default function App() {
   const [score, setScore] = useState<number>(0);
   const [won, setWon] = useState<boolean>(false);
   const [lost, setLost] = useState<boolean>(false);
+  
 
   const boardSize = useMemo(() => getBoardSize(), []);
-  const cellGap = 12;
+  const cellGap = 6;
   const cellSize = useMemo(() => (boardSize - cellGap * (GRID_SIZE + 1)) / GRID_SIZE, [boardSize]);
 
   const performMove = useCallback(
@@ -232,6 +233,12 @@ export default function App() {
     setLost(false);
   }, []);
 
+  // Keep latest performMove inside a ref to avoid stale closures in PanResponder
+  const performMoveRef = useRef<(direction: 'left' | 'right' | 'up' | 'down') => void>(performMove);
+  useEffect(() => {
+    performMoveRef.current = performMove;
+  }, [performMove]);
+
   const responder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_evt: GestureResponderEvent, gesture: PanResponderGestureState) => {
@@ -245,9 +252,9 @@ export default function App() {
         const absDy = Math.abs(dy);
         if (Math.max(absDx, absDy) < SWIPE_THRESHOLD_PX) return;
         if (absDx > absDy) {
-          performMove(dx > 0 ? 'right' : 'left');
+          performMoveRef.current(dx > 0 ? 'right' : 'left');
         } else {
-          performMove(dy > 0 ? 'down' : 'up');
+          performMoveRef.current(dy > 0 ? 'down' : 'up');
         }
       },
     })
@@ -256,6 +263,23 @@ export default function App() {
   useEffect(() => {
     // if game is over, nothing special here; overlays below render conditionally
   }, [lost, won]);
+
+  interface TileProps { value: number; size: number }
+
+  const Tile: React.FC<TileProps> = ({ value, size }) => (
+    <View
+      style={[
+        styles.tile,
+        { width: size, height: size, backgroundColor: getTileBackgroundColor(value) },
+      ]}
+    >
+      {value !== 0 && (
+        <Text style={[styles.tileText, { color: getTileTextColor(value), fontSize: value >= 1024 ? 26 : value >= 128 ? 28 : 32 }]}>
+          {value}
+        </Text>
+      )}
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -282,16 +306,7 @@ export default function App() {
           {grid.map((row, rIdx) => (
             <View key={`row-${rIdx}`} style={[styles.row, { gap: cellGap }]}> 
               {row.map((value, cIdx) => (
-                <View
-                  key={`cell-${rIdx}-${cIdx}`}
-                  style={[styles.tile, { width: cellSize, height: cellSize, backgroundColor: getTileBackgroundColor(value) }]}
-                >
-                  {value !== 0 && (
-                    <Text style={[styles.tileText, { color: getTileTextColor(value), fontSize: value >= 1024 ? 26 : value >= 128 ? 28 : 32 }]}>
-                      {value}
-                    </Text>
-                  )}
-                </View>
+                <Tile key={`cell-${rIdx}-${cIdx}`} value={value} size={cellSize} />
               ))}
             </View>
           ))}
@@ -313,26 +328,6 @@ export default function App() {
               </View>
             </View>
           )}
-        </View>
-
-        <View style={styles.arrowsRow}>
-          <View style={styles.arrowsColumn}>
-            <Pressable style={styles.arrowButton} onPress={() => performMove('up')}>
-              <Text style={styles.arrowText}>↑</Text>
-            </Pressable>
-            <View style={styles.arrowMiddleRow}>
-              <Pressable style={styles.arrowButton} onPress={() => performMove('left')}>
-                <Text style={styles.arrowText}>←</Text>
-              </Pressable>
-              <View style={{ width: 12 }} />
-              <Pressable style={styles.arrowButton} onPress={() => performMove('right')}>
-                <Text style={styles.arrowText}>→</Text>
-              </Pressable>
-            </View>
-            <Pressable style={styles.arrowButton} onPress={() => performMove('down')}>
-              <Text style={styles.arrowText}>↓</Text>
-            </Pressable>
-          </View>
         </View>
     </View>
     </SafeAreaView>
@@ -460,29 +455,5 @@ const styles = StyleSheet.create({
     color: '#8f7a66',
     fontWeight: '700',
     fontSize: 16,
-  },
-  arrowsRow: {
-    marginTop: 8,
-  },
-  arrowsColumn: {
-    alignItems: 'center',
-    gap: 8,
-  },
-  arrowMiddleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  arrowButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#8f7a66',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  arrowText: {
-    color: '#f9f6f2',
-    fontSize: 22,
-    fontWeight: '800',
   },
 });
