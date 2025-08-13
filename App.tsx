@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import * as Haptics from 'expo-haptics';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import {
   SafeAreaView,
@@ -10,6 +12,10 @@ import {
   PanResponder,
   GestureResponderEvent,
   PanResponderGestureState,
+  Modal,
+  Switch,
+  Animated,
+  Easing,
 } from 'react-native';
 
 type Grid = number[][]; // 0 means empty
@@ -17,7 +23,7 @@ type Grid = number[][]; // 0 means empty
 const GRID_SIZE = 4;
 const TARGET_VALUE = 2048;
 const NEW_TILE_PROBABILITY_4 = 0.1; // 10% chance a new tile is 4
-const SWIPE_THRESHOLD_PX = 24; // minimum pixels to be considered a swipe
+const DEFAULT_SWIPE_THRESHOLD_PX = 24; // minimum pixels to be considered a swipe
 
 function createEmptyGrid(): Grid {
   return Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
@@ -185,9 +191,15 @@ function getBoardSize(): number {
 export default function App() {
   const [grid, setGrid] = useState<Grid>(() => addRandomTile(addRandomTile(createEmptyGrid())));
   const [score, setScore] = useState<number>(0);
+  const [bestScore, setBestScore] = useState<number>(0);
   const [won, setWon] = useState<boolean>(false);
   const [lost, setLost] = useState<boolean>(false);
-  
+  const lastStateRef = useRef<{ grid: Grid; score: number } | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [isDark, setIsDark] = useState<boolean>(false);
+  const [swipeThreshold, setSwipeThreshold] = useState<number>(DEFAULT_SWIPE_THRESHOLD_PX);
+  const [popCells, setPopCells] = useState<Set<string>>(new Set());
+  const prevGridRef = useRef<Grid>(grid);
 
   const boardSize = useMemo(() => getBoardSize(), []);
   const cellGap = 6;
@@ -213,7 +225,17 @@ export default function App() {
           break;
       }
       if (!result.moved) return;
+      lastStateRef.current = { grid, score };
       const withNewTile = addRandomTile(result.grid);
+      const changed = new Set<string>();
+      for (let r = 0; r < GRID_SIZE; r += 1) {
+        for (let c = 0; c < GRID_SIZE; c += 1) {
+          const prevVal = grid[r][c];
+          const nextVal = withNewTile[r][c];
+          if (nextVal !== 0 && nextVal > prevVal) changed.add(`${r}-${c}`);
+        }
+      }
+      setPopCells(changed);
       const nextScore = score + result.gained;
       const nextWon = won || hasReachedTarget(withNewTile);
       const nextLost = !canMove(withNewTile);
@@ -221,8 +243,21 @@ export default function App() {
       setScore(nextScore);
       setWon(nextWon);
       setLost(nextLost);
+      if (result.gained > 0) {
+        const strength = result.gained >= 64 ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light;
+        Haptics.impactAsync(strength);
+      }
+      if (nextWon) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else if (nextLost) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      }
+      if (nextScore > bestScore) {
+        setBestScore(nextScore);
+        AsyncStorage.setItem('bestScore', String(nextScore)).catch(() => {});
+      }
     },
-    [grid, score, won, lost]
+    [grid, score, won, lost, bestScore]
   );
 
   const startNewGame = useCallback(() => {
@@ -231,6 +266,7 @@ export default function App() {
     setScore(0);
     setWon(false);
     setLost(false);
+    lastStateRef.current = null;
   }, []);
 
   // Keep latest performMove inside a ref to avoid stale closures in PanResponder
@@ -244,13 +280,13 @@ export default function App() {
       onMoveShouldSetPanResponder: (_evt: GestureResponderEvent, gesture: PanResponderGestureState) => {
         const absDx = Math.abs(gesture.dx);
         const absDy = Math.abs(gesture.dy);
-        return Math.max(absDx, absDy) > SWIPE_THRESHOLD_PX;
+        return Math.max(absDx, absDy) > swipeThreshold;
       },
       onPanResponderRelease: (_evt: GestureResponderEvent, gesture: PanResponderGestureState) => {
         const { dx, dy } = gesture;
         const absDx = Math.abs(dx);
         const absDy = Math.abs(dy);
-        if (Math.max(absDx, absDy) < SWIPE_THRESHOLD_PX) return;
+        if (Math.max(absDx, absDy) < swipeThreshold) return;
         if (absDx > absDy) {
           performMoveRef.current(dx > 0 ? 'right' : 'left');
         } else {
@@ -264,64 +300,121 @@ export default function App() {
     // if game is over, nothing special here; overlays below render conditionally
   }, [lost, won]);
 
-  interface TileProps { value: number; size: number }
+  // Load best score on mount
+  useEffect(() => {
+    AsyncStorage.multiGet(['bestScore', 'settings.isDark', 'settings.swipeThreshold'])
+      .then((entries) => {
+        const map = Object.fromEntries(entries);
+        const best = map['bestScore'];
+        if (best) {
+          const parsed = Number(best);
+          if (Number.isFinite(parsed)) setBestScore(parsed);
+        }
+        const dark = map['settings.isDark'];
+        if (dark) setIsDark(dark === '1');
+        const threshold = map['settings.swipeThreshold'];
+        if (threshold) {
+          const parsed = Number(threshold);
+          if (Number.isFinite(parsed)) setSwipeThreshold(Math.max(6, Math.min(80, parsed)));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
-  const Tile: React.FC<TileProps> = ({ value, size }) => (
-    <View
-      style={[
-        styles.tile,
-        { width: size, height: size, backgroundColor: getTileBackgroundColor(value) },
-      ]}
-    >
-      {value !== 0 && (
-        <Text style={[styles.tileText, { color: getTileTextColor(value), fontSize: value >= 1024 ? 26 : value >= 128 ? 28 : 32 }]}>
-          {value}
-        </Text>
-      )}
-    </View>
-  );
+  useEffect(() => { prevGridRef.current = grid; }, [grid]);
+
+  const undoLastMove = useCallback(() => {
+    const last = lastStateRef.current;
+    if (!last) return;
+    setGrid(last.grid);
+    setScore(last.score);
+    setWon(false);
+    setLost(false);
+    lastStateRef.current = null; // single-step undo
+  }, []);
+
+  interface TileProps { value: number; size: number; shouldPop: boolean }
+
+  const Tile: React.FC<TileProps> = ({ value, size, shouldPop }) => {
+    const scale = useRef(new Animated.Value(1)).current;
+    useEffect(() => {
+      if (shouldPop && value !== 0) {
+        scale.setValue(0.92);
+        Animated.sequence([
+          Animated.timing(scale, { toValue: 1.05, duration: 90, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+          Animated.timing(scale, { toValue: 1, duration: 110, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        ]).start();
+      }
+    }, [shouldPop, value]);
+    return (
+      <Animated.View
+        style={[
+          styles.tile,
+          { width: size, height: size, backgroundColor: getTileBackgroundColor(value), transform: [{ scale }] },
+        ]}
+      >
+        {value !== 0 && (
+          <Text style={[styles.tileText, { color: getTileTextColor(value), fontSize: value >= 1024 ? 26 : value >= 128 ? 28 : 32 }]}>
+            {value}
+          </Text>
+        )}
+      </Animated.View>
+    );
+  };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#1c1b1a' : '#faf8ef' }]}>
       <StatusBar style="dark" />
       <View style={styles.container} {...responder.panHandlers}>
         <View style={styles.headerRow}>
-          <Text style={styles.title}>2048</Text>
+          <Text style={[styles.title, { color: isDark ? '#eae0d5' : '#776e65' }]}>2048</Text>
           <View style={styles.scoreRow}>
-            <View style={styles.scoreBox}>
-              <Text style={styles.scoreLabel}>SCORE</Text>
-              <Text style={styles.scoreValue}>{score}</Text>
+            <View style={[styles.scoreBox, { backgroundColor: isDark ? '#5a5148' : '#bbada0' }]}>
+              <Text style={[styles.scoreLabel, { color: isDark ? '#f1e9df' : '#eee4da' }]}>SCORE</Text>
+              <Text style={[styles.scoreValue, { color: '#ffffff' }]}>{score}</Text>
+            </View>
+            <View style={[styles.scoreBox, { backgroundColor: isDark ? '#5a5148' : '#bbada0' }]}>
+              <Text style={[styles.scoreLabel, { color: isDark ? '#f1e9df' : '#eee4da' }]}>BEST</Text>
+              <Text style={[styles.scoreValue, { color: '#ffffff' }]}>{bestScore}</Text>
             </View>
           </View>
         </View>
         <View style={styles.controlsRow}>
-          <Pressable style={styles.newGameButton} onPress={startNewGame} accessibilityRole="button">
-            <Text style={styles.newGameText}>New Game</Text>
-          </Pressable>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <Pressable style={[styles.secondaryButton, { backgroundColor: isDark ? '#6d6156' : '#d0c5bb' }]} onPress={undoLastMove} accessibilityRole="button">
+              <Text style={[styles.secondaryButtonText, { color: isDark ? '#f0e7dc' : '#776e65' }]}>Undo</Text>
+            </Pressable>
+            <Pressable style={[styles.secondaryButton, { backgroundColor: isDark ? '#6d6156' : '#d0c5bb' }]} onPress={() => setIsSettingsOpen(true)} accessibilityRole="button">
+              <Text style={[styles.secondaryButtonText, { color: isDark ? '#f0e7dc' : '#776e65' }]}>Settings</Text>
+            </Pressable>
+            <Pressable style={[styles.newGameButton, { backgroundColor: '#8f7a66' }]} onPress={startNewGame} accessibilityRole="button">
+              <Text style={[styles.newGameText, { color: '#f9f6f2' }]}>New Game</Text>
+            </Pressable>
+          </View>
         </View>
 
         <View
-          style={[styles.board, { width: boardSize, height: boardSize, padding: cellGap, gap: cellGap }]}
+          style={[styles.board, { width: boardSize, height: boardSize, padding: cellGap, gap: cellGap, backgroundColor: isDark ? '#6b6158' : '#bbada0' }]}
         >
           {grid.map((row, rIdx) => (
             <View key={`row-${rIdx}`} style={[styles.row, { gap: cellGap }]}> 
               {row.map((value, cIdx) => (
-                <Tile key={`cell-${rIdx}-${cIdx}`} value={value} size={cellSize} />
+                <Tile key={`cell-${rIdx}-${cIdx}`} value={value} size={cellSize} shouldPop={popCells.has(`${rIdx}-${cIdx}`)} />
               ))}
             </View>
           ))}
 
           {(won || lost) && (
-            <View style={[styles.overlay, { width: boardSize, height: boardSize }]}> 
+            <View style={[styles.overlay, { width: boardSize, height: boardSize, backgroundColor: isDark ? 'rgba(28,27,26,0.78)' : 'rgba(238, 228, 218, 0.73)' }]}> 
               <View style={styles.overlayBox}>
-                <Text style={styles.overlayTitle}>{lost ? 'Game Over' : 'You Win!'}</Text>
+                <Text style={[styles.overlayTitle, { color: isDark ? '#eae0d5' : '#776e65' }]}>{lost ? 'Game Over' : 'You Win!'}</Text>
                 <View style={styles.overlayButtonsRow}>
-                  <Pressable style={styles.overlayButtonPrimary} onPress={startNewGame}>
-                    <Text style={styles.overlayButtonPrimaryText}>New Game</Text>
+                  <Pressable style={[styles.overlayButtonPrimary, { backgroundColor: '#8f7a66' }]} onPress={startNewGame}>
+                    <Text style={[styles.overlayButtonPrimaryText, { color: '#f9f6f2' }]}>New Game</Text>
                   </Pressable>
                   {won && !lost && (
-                    <Pressable style={styles.overlayButtonSecondary} onPress={() => setWon(false)}>
-                      <Text style={styles.overlayButtonSecondaryText}>Keep Going</Text>
+                    <Pressable style={[styles.overlayButtonSecondary, { backgroundColor: isDark ? '#6d6156' : '#eee4da' }]} onPress={() => setWon(false)}>
+                      <Text style={[styles.overlayButtonSecondaryText, { color: isDark ? '#f0e7dc' : '#8f7a66' }]}>Keep Going</Text>
                     </Pressable>
                   )}
                 </View>
@@ -329,6 +422,41 @@ export default function App() {
             </View>
           )}
         </View>
+
+        <Modal visible={isSettingsOpen} transparent animationType="fade" onRequestClose={() => setIsSettingsOpen(false)}>
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.modalCard, { backgroundColor: isDark ? '#2a2826' : '#ffffff' }]}> 
+              <Text style={[styles.modalTitle, { color: isDark ? '#f0e7dc' : '#333' }]}>Settings</Text>
+              <View style={styles.modalRow}>
+                <Text style={[styles.modalLabel, { color: isDark ? '#f0e7dc' : '#333' }]}>Dark Mode</Text>
+                <Switch value={isDark} onValueChange={(v) => { setIsDark(v); AsyncStorage.setItem('settings.isDark', v ? '1' : '0').catch(() => {}); }} />
+              </View>
+              <View style={styles.modalRowBetween}>
+                <Text style={[styles.modalLabel, { color: isDark ? '#f0e7dc' : '#333' }]}>Swipe Sensitivity</Text>
+                <Text style={[styles.modalValue, { color: isDark ? '#f0e7dc' : '#333' }]}>{swipeThreshold}px</Text>
+              </View>
+              <View style={styles.modalButtonsRow}>
+                <Pressable
+                  style={[styles.secondaryButton, { backgroundColor: isDark ? '#6d6156' : '#d0c5bb' }]}
+                  onPress={() => { const next = Math.max(6, swipeThreshold - 4); setSwipeThreshold(next); AsyncStorage.setItem('settings.swipeThreshold', String(next)).catch(() => {}); }}
+                >
+                  <Text style={[styles.secondaryButtonText, { color: isDark ? '#f0e7dc' : '#776e65' }]}>-</Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.secondaryButton, { backgroundColor: isDark ? '#6d6156' : '#d0c5bb' }]}
+                  onPress={() => { const next = Math.min(80, swipeThreshold + 4); setSwipeThreshold(next); AsyncStorage.setItem('settings.swipeThreshold', String(next)).catch(() => {}); }}
+                >
+                  <Text style={[styles.secondaryButtonText, { color: isDark ? '#f0e7dc' : '#776e65' }]}>+</Text>
+                </Pressable>
+              </View>
+              <View style={styles.modalFooterRow}>
+                <Pressable style={[styles.newGameButton, { backgroundColor: '#8f7a66' }]} onPress={() => setIsSettingsOpen(false)}>
+                  <Text style={[styles.newGameText, { color: '#f9f6f2' }]}>Close</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        </Modal>
     </View>
     </SafeAreaView>
   );
@@ -390,8 +518,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
   },
+  secondaryButton: {
+    backgroundColor: '#d0c5bb',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
   newGameText: {
     color: '#f9f6f2',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  secondaryButtonText: {
+    color: '#776e65',
     fontWeight: '700',
     fontSize: 16,
   },
@@ -455,5 +594,53 @@ const styles = StyleSheet.create({
     color: '#8f7a66',
     fontWeight: '700',
     fontSize: 16,
+  },
+  // Settings modal styles
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    width: '100%',
+    borderRadius: 12,
+    padding: 16,
+    gap: 12,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+  },
+  modalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  modalRowBetween: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  modalLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalValue: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  modalButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 6,
+  },
+  modalFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 10,
   },
 });
