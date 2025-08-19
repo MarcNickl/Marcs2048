@@ -366,8 +366,8 @@ export default function App() {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#1c1b1a' : '#faf8ef' }]}>
       <StatusBar style="dark" />
       <View style={styles.container} {...responder.panHandlers}>
+        <Text style={[styles.title, { color: isDark ? '#eae0d5' : '#776e65', textAlign: 'left', alignSelf: 'flex-start' }]}>2048</Text>
         <View style={styles.headerRow}>
-          <Text style={[styles.title, { color: isDark ? '#eae0d5' : '#776e65' }]}>2048</Text>
           <View style={styles.scoreRow}>
             <View style={[styles.scoreBox, { backgroundColor: isDark ? '#5a5148' : '#bbada0' }]}>
               <Text style={[styles.scoreLabel, { color: isDark ? '#f1e9df' : '#eee4da' }]}>SCORE</Text>
@@ -392,7 +392,7 @@ export default function App() {
             </Pressable>
           </View>
         </View>
-
+        
         <View
           style={[styles.board, { width: boardSize, height: boardSize, padding: cellGap, gap: cellGap, backgroundColor: isDark ? '#6b6158' : '#bbada0' }]}
         >
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
   },
   title: {
     fontSize: 48,

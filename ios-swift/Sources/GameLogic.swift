@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 struct Position: Hashable { let row: Int; let col: Int }
 
@@ -17,6 +18,7 @@ final class GameModel: ObservableObject {
     @Published var score: Int = 0
     @Published var won: Bool = false
     @Published var lost: Bool = false
+    private var lastState: (grid: [[Int]], score: Int)? = nil
 
     init() {
         startNewGame()
@@ -27,6 +29,7 @@ final class GameModel: ObservableObject {
         score = 0
         won = false
         lost = false
+        lastState = nil
         grid = addRandomTile(grid)
         grid = addRandomTile(grid)
     }
@@ -45,12 +48,33 @@ final class GameModel: ObservableObject {
             result = moveDown(grid)
         }
         guard result.moved else { return }
+        lastState = (grid, score)
         var g = result.grid
         g = addRandomTile(g)
         score += result.gained
         won = won || hasReachedTarget(g)
         lost = !canMove(g)
         grid = g
+
+        // Haptics
+        if result.gained > 0 {
+            let style: UIImpactFeedbackGenerator.FeedbackStyle = result.gained >= 64 ? .medium : .light
+            UIImpactFeedbackGenerator(style: style).impactOccurred()
+        }
+        if won {
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        } else if lost {
+            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        }
+    }
+
+    func undo() {
+        guard let last = lastState else { return }
+        grid = last.grid
+        score = last.score
+        won = false
+        lost = false
+        lastState = nil
     }
 }
 

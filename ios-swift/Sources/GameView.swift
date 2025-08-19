@@ -3,8 +3,12 @@ import SwiftUI
 struct GameView: View {
     @StateObject private var model = GameModel()
     @GestureState private var dragOffset: CGSize = .zero
+    @AppStorage("bestScore") private var bestScore: Int = 0
+    @AppStorage("isDarkMode") private var isDarkMode: Bool = false
+    @AppStorage("swipeThreshold") private var swipeThreshold: Double = 24
+    @State private var isSettingsOpen: Bool = false
 
-    private let spacing: CGFloat = 10
+    private let spacing: CGFloat = 6
     private let gridSize: Int = GameModel.gridSize
 
     private func tileColor(_ value: Int) -> Color {
@@ -30,7 +34,7 @@ struct GameView: View {
     }
 
     private var swipeGesture: some Gesture {
-        DragGesture(minimumDistance: 20)
+        DragGesture(minimumDistance: CGFloat(swipeThreshold))
             .updating($dragOffset, body: { value, state, _ in
                 state = value.translation
             })
@@ -42,6 +46,7 @@ struct GameView: View {
                 } else {
                     model.perform(dy > 0 ? .down : .up)
                 }
+                if model.score > bestScore { bestScore = model.score }
             }
     }
 
@@ -51,8 +56,20 @@ struct GameView: View {
             let tileSize = (width - spacing * CGFloat(gridSize + 1)) / CGFloat(gridSize)
 
             VStack(spacing: 16) {
-                HStack {
-                    Text("2048").font(.system(size: 48, weight: .heavy)).foregroundStyle(Color(hex: 0x776E65))
+                Text("2048")
+                    .font(.system(size: 48, weight: .heavy))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .foregroundStyle(isDarkMode ? Color.white.opacity(0.9) : Color(hex: 0x776E65))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                HStack(spacing: 12) {
+                    Button(action: { model.undo() }) {
+                        Image(systemName: "arrow.uturn.left.circle.fill")
+                            .font(.system(size: 28, weight: .semibold))
+                            .foregroundStyle(isDarkMode ? Color.white.opacity(0.9) : Color(hex: 0x8F7A66))
+                    }
+                    .buttonStyle(.plain)
                     Spacer()
                     VStack(spacing: 4) {
                         Text("SCORE").font(.system(size: 12, weight: .bold)).foregroundStyle(Color(hex: 0xEEE4DA))
@@ -61,17 +78,13 @@ struct GameView: View {
                     .frame(minWidth: 88)
                     .padding(.vertical, 6).padding(.horizontal, 12)
                     .background(Color(hex: 0xBBADA0)).clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                .padding(.horizontal)
-
-                HStack {
-                    Spacer()
-                    Button("New Game") { model.startNewGame() }
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(Color(hex: 0xF9F6F2))
-                        .padding(.vertical, 10).padding(.horizontal, 16)
-                        .background(Color(hex: 0x8F7A66))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    VStack(spacing: 4) {
+                        Text("BEST").font(.system(size: 12, weight: .bold)).foregroundStyle(Color(hex: 0xEEE4DA))
+                        Text("\(bestScore)").font(.system(size: 20, weight: .heavy)).foregroundStyle(.white)
+                    }
+                    .frame(minWidth: 88)
+                    .padding(.vertical, 6).padding(.horizontal, 12)
+                    .background(Color(hex: 0xBBADA0)).clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 .padding(.horizontal)
 
@@ -87,6 +100,10 @@ struct GameView: View {
                                         if value != 0 {
                                             Text("\(value)")
                                                 .font(.system(size: value >= 1024 ? 26 : value >= 128 ? 28 : 32, weight: .heavy))
+                                                .monospacedDigit()
+                                                .lineLimit(1)
+                                                .minimumScaleFactor(0.5)
+                                                .allowsTightening(true)
                                                 .foregroundStyle(tileTextColor(value))
                                         }
                                     }
@@ -129,23 +146,24 @@ struct GameView: View {
                     }
                 }
 
-                VStack(spacing: 8) {
-                    Button { model.perform(.up) } label: { Text("↑").font(.system(size: 22, weight: .heavy)) }
-                        .buttonStyle(ArrowButtonStyle())
-                    HStack(spacing: 12) {
-                        Button { model.perform(.left) } label: { Text("←").font(.system(size: 22, weight: .heavy)) }
-                            .buttonStyle(ArrowButtonStyle())
-                        Button { model.perform(.right) } label: { Text("→").font(.system(size: 22, weight: .heavy)) }
-                            .buttonStyle(ArrowButtonStyle())
-                    }
-                    Button { model.perform(.down) } label: { Text("↓").font(.system(size: 22, weight: .heavy)) }
-                        .buttonStyle(ArrowButtonStyle())
-                }
+                
             }
             .padding(.vertical, 16)
-            .background(Color(hex: 0xFAF8EF))
+            .background(isDarkMode ? Color.black.opacity(0.92) : Color(hex: 0xFAF8EF))
         }
         .ignoresSafeArea(edges: .bottom)
+        .sheet(isPresented: $isSettingsOpen) {
+            NavigationStack {
+                Form {
+                    Toggle("Dark Mode", isOn: $isDarkMode)
+                    Stepper(value: $swipeThreshold, in: 6...80, step: 2) {
+                        HStack { Text("Swipe Sensitivity"); Spacer(); Text("\(Int(swipeThreshold)) px") }
+                    }
+                }
+                .navigationTitle("Settings")
+                .toolbar { ToolbarItem(placement: .primaryAction) { Button("Close") { isSettingsOpen = false } } }
+            }
+        }
     }
 }
 
