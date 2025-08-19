@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/icon.png" alt="2048 Logo" width="128" height="128" />
+<img src="ios-swift/2048%20Logo%20copy.png" alt="2048 Logo" width="128" height="128" />
 
 </div>
 
