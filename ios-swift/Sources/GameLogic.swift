@@ -34,7 +34,7 @@ final class GameModel: ObservableObject {
         grid = addRandomTile(grid)
     }
 
-    func perform(_ direction: Direction) {
+    func perform(_ direction: Direction, hapticsEnabled: Bool = true, strongHapticsEnabled: Bool = true) {
         guard !lost else { return }
         let result: MoveResult
         switch direction {
@@ -57,14 +57,17 @@ final class GameModel: ObservableObject {
         grid = g
 
         // Haptics
-        if result.gained > 0 {
-            let style: UIImpactFeedbackGenerator.FeedbackStyle = result.gained >= 64 ? .medium : .light
-            UIImpactFeedbackGenerator(style: style).impactOccurred()
-        }
-        if won {
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
-        } else if lost {
-            UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        if hapticsEnabled {
+            if result.gained > 0 {
+                let useStrongHaptic = strongHapticsEnabled && result.gained >= 64
+                let style: UIImpactFeedbackGenerator.FeedbackStyle = useStrongHaptic ? .medium : .light
+                UIImpactFeedbackGenerator(style: style).impactOccurred()
+            }
+            if won {
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            } else if lost {
+                UINotificationFeedbackGenerator().notificationOccurred(.warning)
+            }
         }
     }
 

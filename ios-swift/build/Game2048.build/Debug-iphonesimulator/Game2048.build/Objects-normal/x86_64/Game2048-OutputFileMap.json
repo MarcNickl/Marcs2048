@@ -1,0 +1,48 @@
+{
+  "" : {
+    "diagnostics" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/Game2048-master.dia",
+    "emit-module-dependencies" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/Game2048-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/Game2048-master-emit-module.dia",
+    "swift-dependencies" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/Game2048-master.swiftdeps"
+  },
+  "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/Sources/Game2048App.swift" : {
+    "const-values" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/Game2048App.swiftconstvalues",
+    "dependencies" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/Game2048App.d",
+    "diagnostics" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/Game2048App.dia",
+    "index-unit-output-path" : "/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/Game2048App.o",
+    "llvm-bc" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/Game2048App.bc",
+    "object" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/Game2048App.o",
+    "swift-dependencies" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/Game2048App.swiftdeps",
+    "swiftmodule" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/Game2048App~partial.swiftmodule"
+  },
+  "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/Sources/GameLogic.swift" : {
+    "const-values" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameLogic.swiftconstvalues",
+    "dependencies" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameLogic.d",
+    "diagnostics" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameLogic.dia",
+    "index-unit-output-path" : "/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameLogic.o",
+    "llvm-bc" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameLogic.bc",
+    "object" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameLogic.o",
+    "swift-dependencies" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameLogic.swiftdeps",
+    "swiftmodule" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameLogic~partial.swiftmodule"
+  },
+  "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/Sources/GameView.swift" : {
+    "const-values" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameView.swiftconstvalues",
+    "dependencies" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameView.d",
+    "diagnostics" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameView.dia",
+    "index-unit-output-path" : "/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameView.o",
+    "llvm-bc" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameView.bc",
+    "object" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameView.o",
+    "swift-dependencies" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameView.swiftdeps",
+    "swiftmodule" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GameView~partial.swiftmodule"
+  },
+  "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/marc_nickl/Documents/GitHub/2048/ios-swift/build/Game2048.build/Debug-iphonesimulator/Game2048.build/Objects-normal/x86_64/GeneratedAssetSymbols~partial.swiftmodule"
+  }
+}

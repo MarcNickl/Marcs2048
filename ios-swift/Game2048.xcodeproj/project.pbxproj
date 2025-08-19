@@ -1,4 +1,4 @@
-a// !$*UTF8*$!
+// !$*UTF8*$!
 {
 	archiveVersion = 1;
 	classes = {
@@ -10,12 +10,16 @@ a// !$*UTF8*$!
 		1D9D0079AAC50F3F32B2A7B1 /* GameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E42836FFAF553EE32DA463A7 /* GameView.swift */; };
 		313AE338F4978F105AC03A22 /* GameLogic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3477488444868D24BAB09808 /* GameLogic.swift */; };
 		67BFEDD9F5907AACBBE545F9 /* Game2048App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73E0F82C3ACEEE47FB5E2A9A /* Game2048App.swift */; };
+		DB9464F62E53FB9A00F42DAB /* 2048 Logo copy.png in Resources */ = {isa = PBXBuildFile; fileRef = DB9464F52E53FB9A00F42DAB /* 2048 Logo copy.png */; };
+		E8A3B2F41234567890ABCDEF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B8F2A4E51234567890ABCDEF /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		3477488444868D24BAB09808 /* GameLogic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameLogic.swift; sourceTree = "<group>"; };
 		73E0F82C3ACEEE47FB5E2A9A /* Game2048App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Game2048App.swift; sourceTree = "<group>"; };
 		A73963EA27E9EA980C4C7DB6 /* Game2048.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Game2048.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B8F2A4E51234567890ABCDEF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		DB9464F52E53FB9A00F42DAB /* 2048 Logo copy.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "2048 Logo copy.png"; sourceTree = "<group>"; };
 		E42836FFAF553EE32DA463A7 /* GameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -24,6 +28,8 @@ a// !$*UTF8*$!
 			isa = PBXGroup;
 			children = (
 				3E0DC76029886C852A24AEDB /* Sources */,
+				B8F2A4E51234567890ABCDEF /* Assets.xcassets */,
+				DB9464F52E53FB9A00F42DAB /* 2048 Logo copy.png */,
 				760C0FF6484376B6B483E424 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,6 +60,7 @@ a// !$*UTF8*$!
 			buildConfigurationList = 717E6D534FA872DBA02DB1EF /* Build configuration list for PBXNativeTarget "Game2048" */;
 			buildPhases = (
 				2117B8F560B2E8892290C6AC /* Sources */,
+				D4F5C6A71234567890ABCDEF /* Resources */,
 			);
 			buildRules = (
 			);
@@ -98,6 +105,18 @@ a// !$*UTF8*$!
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D4F5C6A71234567890ABCDEF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E8A3B2F41234567890ABCDEF /* Assets.xcassets in Resources */,
+				DB9464F62E53FB9A00F42DAB /* 2048 Logo copy.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		2117B8F560B2E8892290C6AC /* Sources */ = {

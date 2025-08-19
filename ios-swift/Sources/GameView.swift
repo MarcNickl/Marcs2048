@@ -6,6 +6,9 @@ struct GameView: View {
     @AppStorage("bestScore") private var bestScore: Int = 0
     @AppStorage("isDarkMode") private var isDarkMode: Bool = false
     @AppStorage("swipeThreshold") private var swipeThreshold: Double = 24
+    @AppStorage("hapticsEnabled") private var hapticsEnabled: Bool = true
+    @AppStorage("strongHapticsEnabled") private var strongHapticsEnabled: Bool = true
+    @AppStorage("soundEnabled") private var soundEnabled: Bool = false
     @State private var isSettingsOpen: Bool = false
 
     private let spacing: CGFloat = 6
@@ -42,9 +45,9 @@ struct GameView: View {
                 let dx = value.translation.width
                 let dy = value.translation.height
                 if abs(dx) > abs(dy) {
-                    model.perform(dx > 0 ? .right : .left)
+                    model.perform(dx > 0 ? .right : .left, hapticsEnabled: hapticsEnabled, strongHapticsEnabled: strongHapticsEnabled)
                 } else {
-                    model.perform(dy > 0 ? .down : .up)
+                    model.perform(dy > 0 ? .down : .up, hapticsEnabled: hapticsEnabled, strongHapticsEnabled: strongHapticsEnabled)
                 }
                 if model.score > bestScore { bestScore = model.score }
             }
@@ -70,6 +73,14 @@ struct GameView: View {
                             .foregroundStyle(isDarkMode ? Color.white.opacity(0.9) : Color(hex: 0x8F7A66))
                     }
                     .buttonStyle(.plain)
+                    
+                    Button(action: { isSettingsOpen = true }) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 28, weight: .semibold))
+                            .foregroundStyle(isDarkMode ? Color.white.opacity(0.9) : Color(hex: 0x8F7A66))
+                    }
+                    .buttonStyle(.plain)
+                    
                     Spacer()
                     VStack(spacing: 4) {
                         Text("SCORE").font(.system(size: 12, weight: .bold)).foregroundStyle(Color(hex: 0xEEE4DA))
@@ -151,18 +162,87 @@ struct GameView: View {
             .padding(.vertical, 16)
             .background(isDarkMode ? Color.black.opacity(0.92) : Color(hex: 0xFAF8EF))
         }
-        .ignoresSafeArea(edges: .bottom)
+        .background(isDarkMode ? Color.black : Color(hex: 0xFAF8EF))
+        .animation(.easeInOut(duration: 0.3), value: isDarkMode)
+        .ignoresSafeArea(.all, edges: .bottom)
         .sheet(isPresented: $isSettingsOpen) {
             NavigationStack {
                 Form {
-                    Toggle("Dark Mode", isOn: $isDarkMode)
-                    Stepper(value: $swipeThreshold, in: 6...80, step: 2) {
-                        HStack { Text("Swipe Sensitivity"); Spacer(); Text("\(Int(swipeThreshold)) px") }
+                    Section("Appearance") {
+                        Toggle("Dark Mode", isOn: $isDarkMode)
+                    }
+                    
+                    Section("Gameplay") {
+                        Stepper(value: $swipeThreshold, in: 6...80, step: 2) {
+                            HStack { 
+                                Text("Swipe Sensitivity")
+                                Spacer()
+                                Text("\(Int(swipeThreshold)) px")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    
+                    Section("Haptic Feedback") {
+                        Toggle("Enable Haptics", isOn: $hapticsEnabled)
+                        
+                        if hapticsEnabled {
+                            Toggle("Strong Haptics for Big Merges", isOn: $strongHapticsEnabled)
+                                .help("Stronger feedback for merges worth 64+ points")
+                        }
+                    }
+                    
+                    Section("Audio") {
+                        Toggle("Sound Effects", isOn: $soundEnabled)
+                            .help("Coming soon in future update")
+                    }
+                    
+                    Section("Game Info") {
+                        HStack {
+                            Text("Best Score")
+                            Spacer()
+                            Text("\(bestScore)")
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Button("New Game") {
+                            model.startNewGame()
+                            isSettingsOpen = false
+                        }
+                        .foregroundStyle(.blue)
+                        
+                        Button("Reset Best Score") {
+                            bestScore = 0
+                        }
+                        .foregroundStyle(.red)
+                    }
+                    
+                    Section("About") {
+                        HStack {
+                            Text("Version")
+                            Spacer()
+                            Text("1.0")
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        HStack {
+                            Text("Game")
+                            Spacer()
+                            Text("2048")
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
                 .navigationTitle("Settings")
-                .toolbar { ToolbarItem(placement: .primaryAction) { Button("Close") { isSettingsOpen = false } } }
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { 
+                    ToolbarItem(placement: .primaryAction) { 
+                        Button("Done") { isSettingsOpen = false }
+                            .fontWeight(.semibold)
+                    } 
+                }
             }
+            .presentationDetents([.medium, .large])
         }
     }
 }
