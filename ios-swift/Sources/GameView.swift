@@ -10,6 +10,7 @@ struct GameView: View {
     @AppStorage("strongHapticsEnabled") private var strongHapticsEnabled: Bool = true
     @AppStorage("soundEnabled") private var soundEnabled: Bool = false
     @State private var isSettingsOpen: Bool = false
+    @AppStorage("boardOffsetY") private var boardOffsetY: Double = 0
 
     private let spacing: CGFloat = 6
     private let gridSize: Int = GameModel.gridSize
@@ -142,7 +143,7 @@ struct GameView: View {
                                     .background(Color(hex: 0x8F7A66))
                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                                 if model.won && !model.lost {
-                                    Button("Keep Going") { model.won = false }
+                                    Button("Keep Going") { model.acknowledgeWin() }
                                         .font(.system(size: 16, weight: .bold))
                                         .foregroundStyle(Color(hex: 0x8F7A66))
                                         .padding(.vertical, 10).padding(.horizontal, 16)
@@ -156,6 +157,8 @@ struct GameView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 }
+                .offset(y: CGFloat(boardOffsetY))
+                .animation(.easeInOut(duration: 0.2), value: boardOffsetY)
 
                 
             }
@@ -180,6 +183,18 @@ struct GameView: View {
                                 Text("\(Int(swipeThreshold)) px")
                                     .foregroundStyle(.secondary)
                             }
+                        }
+                    }
+                    Section("Layout") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Board Vertical Offset")
+                                Spacer()
+                                Text("\(Int(boardOffsetY)) px").foregroundStyle(.secondary)
+                            }
+                            Slider(value: $boardOffsetY, in: -200...200, step: 1)
+                            Button("Reset") { boardOffsetY = 0 }
+                                .foregroundStyle(.blue)
                         }
                     }
                     

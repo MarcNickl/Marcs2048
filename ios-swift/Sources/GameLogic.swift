@@ -19,6 +19,7 @@ final class GameModel: ObservableObject {
     @Published var won: Bool = false
     @Published var lost: Bool = false
     private var lastState: (grid: [[Int]], score: Int)? = nil
+    private var winAcknowledged: Bool = false
 
     init() {
         startNewGame()
@@ -29,6 +30,7 @@ final class GameModel: ObservableObject {
         score = 0
         won = false
         lost = false
+        winAcknowledged = false
         lastState = nil
         grid = addRandomTile(grid)
         grid = addRandomTile(grid)
@@ -52,7 +54,9 @@ final class GameModel: ObservableObject {
         var g = result.grid
         g = addRandomTile(g)
         score += result.gained
-        won = won || hasReachedTarget(g)
+        let reachedTargetNow = hasReachedTarget(g)
+        // Only show win once unless user starts a new game
+        won = won || (reachedTargetNow && !winAcknowledged)
         lost = !canMove(g)
         grid = g
 
@@ -78,6 +82,11 @@ final class GameModel: ObservableObject {
         won = false
         lost = false
         lastState = nil
+    }
+
+    func acknowledgeWin() {
+        winAcknowledged = true
+        won = false
     }
 }
 
